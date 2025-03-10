@@ -9,3 +9,9 @@ def padding(s: str) -> bytes:
 
     zeros = b'\x00' * (64 - m - 2)
     return msg + b'\x80' + zeros + bytes([m])
+
+def get_words(block: bytes) -> list:
+    if len(block) != 64:
+        raise ValueError("Input block must be exactly 64 bytes")
+
+    return [block[i*4:(i+1)*4] for i in range(16)]
