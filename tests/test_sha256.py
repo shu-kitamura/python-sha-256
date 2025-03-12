@@ -1,6 +1,4 @@
-import pytest
-
-from src.sha256 import padding, preprocess, split_block_into_words, split_into_blocks
+from src.sha256 import lower_sigma0, lower_sigma1, padding, preprocess, rtor
 
 
 def test_padding():
@@ -9,42 +7,6 @@ def test_padding():
     assert padding("a" * 55) == (b'\x61' * 55) + b'\x80' + b'\x00\x00\x00\x00\x00\x00\x01\xb8'
     assert padding("a" * 56) == (b'\x61' * 56) + b'\x80' + (b'\x00' * 63) + b'\x00\x00\x00\x00\x00\x00\x01\xc0'
     assert padding("a" * 120) == (b'\x61' * 120) + b'\x80' + (b'\x00' * 63) + b'\x00\x00\x00\x00\x00\x00\x03\xc0'
-
-def test_split_into_blocks():
-    # 分割後が 1 block になるテストケース
-    input_bytes1 = b'\x74\x65\x73\x74' + b'\x80' + (b'\x00' * 51) + b'\x00\x00\x00\x00\x00\x00\x00\x20'
-    expect_brocks1 = [input_bytes1]
-    assert split_into_blocks(input_bytes1) == expect_brocks1
-
-    # 分割後が 2 block になるテストケース
-    input_bytes2 = (b'\x61' * 56) + b'\x80' + (b'\x00' * 63) + b'\x00\x00\x00\x00\x00\x00\x01\xc0'
-    expect_brocks2 = [
-        (b'\x61' * 56) + b'\x80' + (b'\x00' * 7),
-        (b'\x00' * 56) + b'\x00\x00\x00\x00\x00\x00\x01\xc0'
-    ]
-    assert split_into_blocks(input_bytes2) == expect_brocks2
-    # 分割後が 3 block になるテストケース
-    input_bytes3 = (b'\x61' * 120) + b'\x80' + (b'\x00' * 63) + b'\x00\x00\x00\x00\x00\x00\x03\xc0'
-    expect_brocks3 = [
-        (b'\x61' * 64),
-        (b'\x61' * 56) + b'\x80' + (b'\x00' * 7),
-        (b'\x00' * 56) + b'\x00\x00\x00\x00\x00\x00\x03\xc0'
-    ]
-    assert split_into_blocks(input_bytes3) == expect_brocks3
-
-def test_split_block_into_words():
-    input_bytes = b'\x74\x65\x73\x74' + b'\x80' + (b'\x00' * 51) + b'\x00\x00\x00\x00\x00\x00\x00\x20'
-    expect_words = [
-        b'\x74\x65\x73\x74', b'\x80\x00\x00\x00', b'\x00\x00\x00\x00', b'\x00\x00\x00\x00',
-        b'\x00\x00\x00\x00', b'\x00\x00\x00\x00', b'\x00\x00\x00\x00', b'\x00\x00\x00\x00',
-        b'\x00\x00\x00\x00', b'\x00\x00\x00\x00', b'\x00\x00\x00\x00', b'\x00\x00\x00\x00',
-        b'\x00\x00\x00\x00', b'\x00\x00\x00\x00', b'\x00\x00\x00\x00', b'\x00\x00\x00\x20',
-    ]
-    assert split_block_into_words(input_bytes) == expect_words
-
-    with pytest.raises(ValueError) as e:
-        split_block_into_words(b'\x74\x65\x73\x74\x00\x00\x00\x00\x00\x00\x00\x20')
-        assert str(e.value) == "Input block must be exactly 64 bytes"
 
 def test_preprocess():
     input_str1 = "test"
@@ -78,3 +40,17 @@ def test_preprocess():
         b'\x00\x00\x00\x00', b'\x00\x00\x00\x00', b'\x00\x00\x00\x00', b'\x00\x00\x00\x28'
     ]]
     assert preprocess(input_str3) == expect3
+
+def test_rtor():
+    assert rtor(1870659584, 7) == 14614528 # b'\x6f\x80\x00\x00' を 7bit シフトするケース
+    assert rtor(1870659584, 18) == 7136 # b'\x6f\x80\x00\x00' を 18bit シフトするケース
+    assert rtor(219, 4) == 2952790029 # b'\x00\x00\x00\xdb' を 4bit シフトするケース
+
+def test_lower_sigma0():
+    assert lower_sigma0(b'\x6f\x80\x00\x00') == 221191136
+    assert lower_sigma0(b'\x00\x00\x00\xdb') == 3057041434
+
+def test_lower_sigma1():
+    assert lower_sigma1(b'\x6f\x80\x00\x00') == 1825328
+    assert lower_sigma1(b'\x00\x00\x00\xdb') == 7790592
+

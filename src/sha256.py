@@ -24,22 +24,36 @@ def padding(string: str) -> bytes:
 
     return msg + b'\x80' + (b'\x00' * pad_zero_count) + L.to_bytes(n, 'big')
 
-def split_into_blocks(data: bytes) -> list:
-    return [data[i:i+64] for i in range(0, len(data), 64)]
-
-def split_block_into_words(block: bytes) -> list:
-    if len(block) != 64:
-        raise ValueError("Input block must be exactly 64 bytes")
-    return [block[i:i+4] for i in range(0, 64, 4)]
-
 def preprocess(string: str) -> list:
     """
     1. padding 関数で string をバイト列に変換しパディングを追加する。
-    2. split_into_blocks 関数で 64 バイトごとのブロックに分割する。
-    3. 各ブロックについて split_block_into_words を実行し、ブロックを 4 バイトごとの word に分割する。
+    2. 64 バイトごとのブロックに分割する。
+    3. ブロックを 4 バイトごとの word に分割する。
+
     戻り値は、各ブロックを word のリストとしたリスト。
     """
     padded = padding(string)
-    blocks = split_into_blocks(padded)
-    words = [split_block_into_words(block) for block in blocks]
+    blocks = [padded[i:i+64] for i in range(0, len(padded), 64)]
+
+    words = []
+    for block in blocks:
+        words.append([block[i:i+4] for i in range(0, 64, 4)])
+
     return words
+
+def rtor(data: int, shift: int) -> int:
+    """
+    4 バイトの data を 32 ビット整数とみなし、指定したビット数 (shift) だけ右循環シフトした結果を返す。
+
+    例:
+      rtor(b'\x6f\x80\x00\x00', 7) -> b'\x00\xdf\x00\x00'
+    """
+    return data >> shift | data << (32 - shift) & 0xffffffff
+
+def lower_sigma0(word: bytes) -> int:
+    int_word = int.from_bytes(word, 'big')
+    return rtor(int_word, 7) ^ rtor(int_word, 18) ^ (int_word >> 3)
+
+def lower_sigma1(word: bytes) -> int:
+    int_word = int.from_bytes(word, 'big')
+    return rtor(int_word, 17) ^ rtor(int_word, 19) ^ (int_word >> 10)
