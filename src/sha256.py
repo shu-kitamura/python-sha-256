@@ -50,10 +50,10 @@ def rtor(data: int, shift: int) -> int:
     """
     return data >> shift | data << (32 - shift) & 0xffffffff
 
-def small_sigma0(word: bytes) -> int:
+def lower_sigma0(word: bytes) -> int:
     int_word = int.from_bytes(word, 'big')
     return rtor(int_word, 7) ^ rtor(int_word, 18) ^ (int_word >> 3)
 
-def small_sigma1(word: bytes) -> int:
+def lower_sigma1(word: bytes) -> int:
     int_word = int.from_bytes(word, 'big')
     return rtor(int_word, 17) ^ rtor(int_word, 19) ^ (int_word >> 10)
