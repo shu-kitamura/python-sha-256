@@ -24,22 +24,19 @@ def padding(string: str) -> bytes:
 
     return msg + b'\x80' + (b'\x00' * pad_zero_count) + L.to_bytes(n, 'big')
 
-def split_into_blocks(data: bytes) -> list:
-    return [data[i:i+64] for i in range(0, len(data), 64)]
-
-def split_block_into_words(block: bytes) -> list:
-    if len(block) != 64:
-        raise ValueError("Input block must be exactly 64 bytes")
-    return [block[i:i+4] for i in range(0, 64, 4)]
-
 def preprocess(string: str) -> list:
     """
     1. padding 関数で string をバイト列に変換しパディングを追加する。
-    2. split_into_blocks 関数で 64 バイトごとのブロックに分割する。
-    3. 各ブロックについて split_block_into_words を実行し、ブロックを 4 バイトごとの word に分割する。
+    2. 64 バイトごとのブロックに分割する。
+    3. ブロックを 4 バイトごとの word に分割する。
+
     戻り値は、各ブロックを word のリストとしたリスト。
     """
     padded = padding(string)
-    blocks = split_into_blocks(padded)
-    words = [split_block_into_words(block) for block in blocks]
+    blocks = [padded[i:i+64] for i in range(0, len(padded), 64)]
+
+    words = []
+    for block in blocks:
+        words.append([block[i:i+4] for i in range(0, 64, 4)])
+
     return words
