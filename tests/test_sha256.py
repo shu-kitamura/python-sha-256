@@ -1,4 +1,4 @@
-from src.sha256 import padding, preprocess
+from src.sha256 import padding, preprocess, rtor, small_sigma0, small_sigma1
 
 
 def test_padding():
@@ -40,3 +40,17 @@ def test_preprocess():
         b'\x00\x00\x00\x00', b'\x00\x00\x00\x00', b'\x00\x00\x00\x00', b'\x00\x00\x00\x28'
     ]]
     assert preprocess(input_str3) == expect3
+
+def test_rtor():
+    assert rtor(1870659584, 7) == 14614528 # b'\x6f\x80\x00\x00' を 7bit シフトするケース
+    assert rtor(1870659584, 18) == 7136 # b'\x6f\x80\x00\x00' を 18bit シフトするケース
+    assert rtor(219, 4) == 2952790029 # b'\x00\x00\x00\xdb' を 4bit シフトするケース
+
+def test_small_sigma0():
+    assert small_sigma0(b'\x6f\x80\x00\x00') == 221191136
+    assert small_sigma0(b'\x00\x00\x00\xdb') == 3057041434
+
+def test_small_sigma1():
+    assert small_sigma1(b'\x6f\x80\x00\x00') == 1825328
+    assert small_sigma1(b'\x00\x00\x00\xdb') == 7790592
+

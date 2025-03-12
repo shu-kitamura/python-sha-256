@@ -40,3 +40,20 @@ def preprocess(string: str) -> list:
         words.append([block[i:i+4] for i in range(0, 64, 4)])
 
     return words
+
+def rtor(data: int, shift: int) -> int:
+    """
+    4 バイトの data を 32 ビット整数とみなし、指定したビット数 (shift) だけ右循環シフトした結果を返す。
+
+    例:
+      rtor(b'\x6f\x80\x00\x00', 7) -> b'\x00\xdf\x00\x00'
+    """
+    return data >> shift | data << (32 - shift) & 0xffffffff
+
+def small_sigma0(word: bytes) -> int:
+    int_word = int.from_bytes(word, 'big')
+    return rtor(int_word, 7) ^ rtor(int_word, 18) ^ (int_word >> 3)
+
+def small_sigma1(word: bytes) -> int:
+    int_word = int.from_bytes(word, 'big')
+    return rtor(int_word, 17) ^ rtor(int_word, 19) ^ (int_word >> 10)
