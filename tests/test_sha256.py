@@ -1,4 +1,18 @@
-from src.sha256 import lower_sigma0, lower_sigma1, padding, preprocess, rtor
+import hashlib
+
+from src.sha256 import (
+    ch,
+    compute_hash,
+    lower_sigma0,
+    lower_sigma1,
+    maj,
+    padding,
+    preprocess,
+    rtor,
+    sha256,
+    upper_sigma0,
+    upper_sigma1,
+)
 
 
 def test_padding():
@@ -47,10 +61,37 @@ def test_rtor():
     assert rtor(219, 4) == 2952790029 # b'\x00\x00\x00\xdb' を 4bit シフトするケース
 
 def test_lower_sigma0():
-    assert lower_sigma0(b'\x6f\x80\x00\x00') == 221191136
-    assert lower_sigma0(b'\x00\x00\x00\xdb') == 3057041434
+    assert lower_sigma0(1870659584) == 221191136 # b'\x6f\x80\x00\x00' のケース
+    assert lower_sigma0(219) == 3057041434 # b'\x00\x00\x00\xdb' のケース
 
 def test_lower_sigma1():
-    assert lower_sigma1(b'\x6f\x80\x00\x00') == 1825328
-    assert lower_sigma1(b'\x00\x00\x00\xdb') == 7790592
+    assert lower_sigma1(1870659584) == 1825328 # b'\x6f\x80\x00\x00' のケース
+    assert lower_sigma1(219) == 7790592 # b'\x00\x00\x00\xdb' のケース
 
+def test_upper_sigma0():
+    assert upper_sigma0(1870659584) == 467893694 # b'\x6f\x80\x00\x00' のケース
+    assert upper_sigma0(219) == 3336268854 # b'\x00\x00\x00\xdb' のケース
+
+def test_upper_sigma1():
+    assert upper_sigma1(1870659584) == 3249795127 # b'\x6f\x80\x00\x00' のケース
+    assert upper_sigma1(219) == 2002808195 # b'\x00\x00\x00\xdb' のケース
+
+def test_ch():
+    assert ch(1359893119, 2600822924, 528734635) == 528861580
+
+def test_maj():
+    assert maj(1359893119, 2600822924, 528734635) == 453466287
+
+def test_compute_hash():
+    expect = [[
+        b'\x68\x65\x6c\x6c', b'\x6f\x80\x00\x00', b'\x00\x00\x00\x00', b'\x00\x00\x00\x00',
+        b'\x00\x00\x00\x00', b'\x00\x00\x00\x00', b'\x00\x00\x00\x00', b'\x00\x00\x00\x00',
+        b'\x00\x00\x00\x00', b'\x00\x00\x00\x00', b'\x00\x00\x00\x00', b'\x00\x00\x00\x00',
+        b'\x00\x00\x00\x00', b'\x00\x00\x00\x00', b'\x00\x00\x00\x00', b'\x00\x00\x00\x28'
+    ]]
+    assert compute_hash(expect) == "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+
+def test_sha256():
+    # 既存ライブラリの出力と合致することを確認
+    assert sha256("hello") == hashlib.sha256("hello".encode("ascii")).hexdigest()
+    assert sha256("a" * 120) == hashlib.sha256(("a" * 120).encode("ascii")).hexdigest()
