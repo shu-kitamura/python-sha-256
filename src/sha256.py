@@ -1,4 +1,21 @@
 
+def preprocess(string: str) -> list:
+    """
+    1. padding 関数で string をバイト列に変換しパディングを追加する。
+    2. 64 バイトごとのブロックに分割する。
+    3. ブロックを 4 バイトごとの word に分割する。
+
+    戻り値は、各ブロックを word のリストとしたリスト。
+    """
+    padded = padding(string)
+    blocks = [padded[i:i+64] for i in range(0, len(padded), 64)]
+
+    words = []
+    for block in blocks:
+        words.append([block[i:i+4] for i in range(0, 64, 4)])
+
+    return words
+
 def padding(string: str) -> bytes:
     # メッセージを ASCII エンコード
     msg = string.encode('ascii')
@@ -24,36 +41,23 @@ def padding(string: str) -> bytes:
 
     return msg + b'\x80' + (b'\x00' * pad_zero_count) + L.to_bytes(n, 'big')
 
-def preprocess(string: str) -> list:
-    """
-    1. padding 関数で string をバイト列に変換しパディングを追加する。
-    2. 64 バイトごとのブロックに分割する。
-    3. ブロックを 4 バイトごとの word に分割する。
-
-    戻り値は、各ブロックを word のリストとしたリスト。
-    """
-    padded = padding(string)
-    blocks = [padded[i:i+64] for i in range(0, len(padded), 64)]
-
-    words = []
-    for block in blocks:
-        words.append([block[i:i+4] for i in range(0, 64, 4)])
-
-    return words
-
 def rtor(data: int, shift: int) -> int:
-    """
-    4 バイトの data を 32 ビット整数とみなし、指定したビット数 (shift) だけ右循環シフトした結果を返す。
-
-    例:
-      rtor(b'\x6f\x80\x00\x00', 7) -> b'\x00\xdf\x00\x00'
-    """
     return data >> shift | data << (32 - shift) & 0xffffffff
 
-def lower_sigma0(word: bytes) -> int:
-    int_word = int.from_bytes(word, 'big')
+def lower_sigma0(int_word: int) -> int:
     return rtor(int_word, 7) ^ rtor(int_word, 18) ^ (int_word >> 3)
 
-def lower_sigma1(word: bytes) -> int:
-    int_word = int.from_bytes(word, 'big')
+def lower_sigma1(int_word: bytes) -> int:
     return rtor(int_word, 17) ^ rtor(int_word, 19) ^ (int_word >> 10)
+
+def upper_sigma0(int_word: int) -> int:
+    return rtor(int_word, 2) ^ rtor(int_word, 13) ^ rtor(int_word, 22)
+
+def upper_sigma1(int_word: int) -> int:
+    return rtor(int_word, 6) ^ rtor(int_word, 11) ^ rtor(int_word, 25)
+
+def ch(x: int, y: int, z: int) -> int:
+    return (x & y) ^ ((x ^ 0xffffffff) & z)
+
+def maj(x: int, y: int, z: int) -> int:
+    return (x & y) ^ (x & z) ^ (y & z)
