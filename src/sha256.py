@@ -9,7 +9,7 @@ K = [
     0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
 ]
 
-def sha256(string:str) -> str:
+def sha256(string: str) -> str:
     blks = preprocess(string)
     return compute_hash(blks)
 
@@ -93,7 +93,7 @@ def rtor(data: int, shift: int) -> int:
 def lower_sigma0(int_word: int) -> int:
     return rtor(int_word, 7) ^ rtor(int_word, 18) ^ (int_word >> 3)
 
-def lower_sigma1(int_word: bytes) -> int:
+def lower_sigma1(int_word: int) -> int:
     return rtor(int_word, 17) ^ rtor(int_word, 19) ^ (int_word >> 10)
 
 def upper_sigma0(int_word: int) -> int:
