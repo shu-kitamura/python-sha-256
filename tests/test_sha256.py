@@ -1,11 +1,15 @@
+import hashlib
+
 from src.sha256 import (
     ch,
+    compute_hash,
     lower_sigma0,
     lower_sigma1,
     maj,
     padding,
     preprocess,
     rtor,
+    sha256,
     upper_sigma0,
     upper_sigma1,
 )
@@ -77,3 +81,17 @@ def test_ch():
 
 def test_maj():
     assert maj(1359893119, 2600822924, 528734635) == 453466287
+
+def test_compute_hash():
+    expect = [[
+        b'\x68\x65\x6c\x6c', b'\x6f\x80\x00\x00', b'\x00\x00\x00\x00', b'\x00\x00\x00\x00',
+        b'\x00\x00\x00\x00', b'\x00\x00\x00\x00', b'\x00\x00\x00\x00', b'\x00\x00\x00\x00',
+        b'\x00\x00\x00\x00', b'\x00\x00\x00\x00', b'\x00\x00\x00\x00', b'\x00\x00\x00\x00',
+        b'\x00\x00\x00\x00', b'\x00\x00\x00\x00', b'\x00\x00\x00\x00', b'\x00\x00\x00\x28'
+    ]]
+    assert compute_hash(expect) == "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+
+def test_sha256():
+    # 既存ライブラリの出力と合致することを確認
+    assert sha256("hello") == hashlib.sha256("hello".encode("ascii")).hexdigest()
+    assert sha256("a" * 120) == hashlib.sha256(("a" * 120).encode("ascii")).hexdigest()
