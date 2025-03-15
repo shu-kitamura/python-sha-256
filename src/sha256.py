@@ -9,26 +9,25 @@ K = [
     0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
 ]
 
-def sha256(string: str) -> str:
-    blks = preprocess(string)
+def sha256(byte_string: bytes) -> str:
+    blks = preprocess(byte_string)
     return compute_hash(blks)
 
-def preprocess(string: str) -> list:
-    padded = padding(string)
-    blocks = [padded[i:i+64] for i in range(0, len(padded), 64)]
+def preprocess(byte_string: str) -> list:
+    padded = padding(byte_string)
 
-    words = []
-    for block in blocks:
-        words.append([block[i:i+4] for i in range(0, 64, 4)])
+    blocks = []
+    for block in [padded[i:i+64] for i in range(0, len(padded), 64)]:
+        words = [block[i:i+4] for i in range(0, 64, 4)]
+        blocks.append(words)
 
-    return words
+    return blocks
 
 def compute_hash(blocks: list) -> str:
     ws = [0] * 64
     H = [
         0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
     ]
-
 
     for block in blocks:
         for t in range(16):
@@ -62,30 +61,24 @@ def compute_hash(blocks: list) -> str:
 
     return "".join([f"{h:08x}" for h in H])
 
-def padding(string: str) -> bytes:
-    # メッセージを ASCII エンコード
-    msg = string.encode('ascii')
-    m = len(msg)
-    # メッセージのビット長
-    L = m * 8
+def padding(byte_string: bytes) -> bytes:
+    string_length = len(byte_string)
 
-    # L を表現するのに必要な最小バイト数 (最低 1 バイト)
     n = 1
-    while L >= (1 << (8 * n)):
+    while (string_length * 8) >= (1 << (8 * n)):
         n += 1
 
     # ブロックサイズは 64 バイトの倍数
     # SHA-256 では、現在のブロックに長さフィールドが収まらない場合は新たなブロックを追加する
-    # ここでは、メッセージ部の長さ m が 56 バイト以上の場合は 2 ブロックにする
-    if m % 64 < 56:
-        total_length = ((m // 64) + 1) * 64
+    # ここでは、メッセージ部の長さ m が 56 バイト以上の場合は 長さを 64 の倍数にする
+    if string_length % 64 < 56:
+        total_length = ((string_length // 64) + 1) * 64
     else:
-        total_length = ((m // 64) + 2) * 64
+        total_length = ((string_length // 64) + 2) * 64
 
-    # ゼロパディングのバイト数を計算
-    pad_zero_count = total_length - (m + 1 + n)
+    pad_zero_count = total_length - (string_length+ 1 + n)
 
-    return msg + b'\x80' + (b'\x00' * pad_zero_count) + L.to_bytes(n, 'big')
+    return byte_string + b'\x80' + (b'\x00' * pad_zero_count) + (string_length * 8).to_bytes(n, 'big')
 
 def rtor(data: int, shift: int) -> int:
     return data >> shift | data << (32 - shift) & 0xffffffff

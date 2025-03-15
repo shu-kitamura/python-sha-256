@@ -16,14 +16,14 @@ from src.sha256 import (
 
 
 def test_padding():
-    assert padding("test") == b'\x74\x65\x73\x74' + b'\x80' + (b'\x00' * 51) + b'\x00\x00\x00\x00\x00\x00\x00\x20'
-    assert padding("") == b'\x80' + (b'\x00' * 62) + b'\x00'
-    assert padding("a" * 55) == (b'\x61' * 55) + b'\x80' + b'\x00\x00\x00\x00\x00\x00\x01\xb8'
-    assert padding("a" * 56) == (b'\x61' * 56) + b'\x80' + (b'\x00' * 63) + b'\x00\x00\x00\x00\x00\x00\x01\xc0'
-    assert padding("a" * 120) == (b'\x61' * 120) + b'\x80' + (b'\x00' * 63) + b'\x00\x00\x00\x00\x00\x00\x03\xc0'
+    assert padding(b"test") == b'\x74\x65\x73\x74' + b'\x80' + (b'\x00' * 51) + b'\x00\x00\x00\x00\x00\x00\x00\x20'
+    assert padding(b"") == b'\x80' + (b'\x00' * 62) + b'\x00'
+    assert padding(b"a" * 55) == (b'\x61' * 55) + b'\x80' + b'\x00\x00\x00\x00\x00\x00\x01\xb8'
+    assert padding(b"a" * 56) == (b'\x61' * 56) + b'\x80' + (b'\x00' * 63) + b'\x00\x00\x00\x00\x00\x00\x01\xc0'
+    assert padding(b"a" * 120) == (b'\x61' * 120) + b'\x80' + (b'\x00' * 63) + b'\x00\x00\x00\x00\x00\x00\x03\xc0'
 
 def test_preprocess():
-    input_str1 = "test"
+    input_str1 = b"test"
     expect1 = [[
         b'\x74\x65\x73\x74', b'\x80\x00\x00\x00', b'\x00\x00\x00\x00', b'\x00\x00\x00\x00',
         b'\x00\x00\x00\x00', b'\x00\x00\x00\x00', b'\x00\x00\x00\x00', b'\x00\x00\x00\x00',
@@ -32,7 +32,7 @@ def test_preprocess():
     ]]
     assert preprocess(input_str1) == expect1
 
-    input_str2 = "a" * 56
+    input_str2 = b"a" * 56
     expect2 = [[
         b'\x61\x61\x61\x61', b'\x61\x61\x61\x61', b'\x61\x61\x61\x61', b'\x61\x61\x61\x61',
         b'\x61\x61\x61\x61', b'\x61\x61\x61\x61', b'\x61\x61\x61\x61', b'\x61\x61\x61\x61',
@@ -46,7 +46,7 @@ def test_preprocess():
     ]]
     assert preprocess(input_str2) == expect2
 
-    input_str3 = "hello"
+    input_str3 = b"hello"
     expect3 = [[
         b'\x68\x65\x6c\x6c', b'\x6f\x80\x00\x00', b'\x00\x00\x00\x00', b'\x00\x00\x00\x00',
         b'\x00\x00\x00\x00', b'\x00\x00\x00\x00', b'\x00\x00\x00\x00', b'\x00\x00\x00\x00',
@@ -93,5 +93,5 @@ def test_compute_hash():
 
 def test_sha256():
     # 既存ライブラリの出力と合致することを確認
-    assert sha256("hello") == hashlib.sha256("hello".encode("ascii")).hexdigest()
-    assert sha256("a" * 120) == hashlib.sha256(("a" * 120).encode("ascii")).hexdigest()
+    assert sha256(b"hello") == hashlib.sha256(b"hello").hexdigest()
+    assert sha256(b"a" * 120) == hashlib.sha256(b"a" * 120).hexdigest()
