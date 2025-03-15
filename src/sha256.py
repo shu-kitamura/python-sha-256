@@ -9,11 +9,12 @@ K = [
     0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
 ]
 
-def sha256(byte_string: bytes) -> str:
-    blks = preprocess(byte_string)
+def sha256(string: str) -> str:
+    blks = preprocess(string)
     return compute_hash(blks)
 
-def preprocess(byte_string: str) -> list:
+def preprocess(string: str) -> list:
+    byte_string = string.encode("ascii")
     padded = padding(byte_string)
 
     blocks = []
